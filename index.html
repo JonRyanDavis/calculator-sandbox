@@ -157,6 +157,10 @@
 
     <div class="result-item highlight"><span>Estimated remaining tax due:</span> <span id="res-remaining-tax"></span></div>
     
+    <div class="result-item highlight"><span>Estimated quarterly payment:</span> <span id="res-quarterly"></span></div>
+    
+    <div class="disclaimer">
+    
     <div class="disclaimer">
       <strong>Note:</strong> This tool estimates your liability using the standard deduction and a simplified QBI deduction. It also estimates W-2 withholdings automatically. You may still be subject to state/local taxes or underpayment penalties. Please consult a qualified tax professional.
     </div>
@@ -343,7 +347,11 @@
         $('#w2-withholding-row').hide();
       }
 
-      $('#res-remaining-tax').text(formatMoney(results.remainingTaxDue));
+     $('#res-remaining-tax').text(formatMoney(results.remainingTaxDue));
+
+      // ADD THESE TWO LINES RIGHT HERE
+      let quarterlyPayment = results.remainingTaxDue / 4;
+      $('#res-quarterly').text(formatMoney(quarterlyPayment));
 
       // Show results with a smooth jQuery fade effect
       $('#results-pane').fadeIn(300);
