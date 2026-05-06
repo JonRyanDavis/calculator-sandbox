@@ -9,22 +9,22 @@
 <style>
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #131924; /* Black */
-    background-color: #F4F5F5; /* Light Gray */
+    color: #131924;
+    background-color: #F4F5F5;
     line-height: 1.6;
     padding: 20px;
   }
   .calculator-container {
     max-width: 600px;
     margin: 0 auto;
-    background: #FFFFFF; /* White */
+    background: #FFFFFF;
     padding: 30px;
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
     text-align: left;
   }
   h2 {
-    color: #012656; /* OnPay Dark Blue */
+    color: #012656;
     margin-top: 0;
   }
   .form-group {
@@ -39,13 +39,13 @@
   input[type="number"], select {
     width: 100%;
     padding: 10px;
-    border: 1px solid #B7BBBE; /* Gray */
+    border: 1px solid #B7BBBE;
     border-radius: 4px;
     font-size: 16px;
     box-sizing: border-box;
   }
   button {
-    background-color: #14C691; /* OnPay Mint */
+    background-color: #14C691;
     color: #FFFFFF;
     border: none;
     padding: 12px 20px;
@@ -57,14 +57,14 @@
     transition: background-color 0.2s;
   }
   button:hover {
-    background-color: #11A77A; /* Darker ADA Green */
+    background-color: #11A77A;
   }
   .results {
     margin-top: 30px;
     padding: 20px;
-    background-color: #AED1FE; /* OnPay Light Blue */
+    background-color: #AED1FE;
     border-radius: 8px;
-    display: none; /* Handled by jQuery */
+    display: none;
   }
   .result-item {
     display: flex;
@@ -93,6 +93,15 @@
     color: #11A77A;
     font-style: italic;
   }
+  .result-item.refund-text {
+    color: #11A77A;
+    font-weight: bold;
+    font-size: 1.15em;
+    margin-top: 15px;
+    padding-top: 10px;
+    border-top: 2px solid #012656;
+    border-bottom: none;
+  }
   .disclaimer {
     font-size: 0.85em;
     color: #012656;
@@ -106,7 +115,7 @@
 
 <div class="calculator-container">
   <h2>Total federal tax calculator</h2>
-  <p>Use our free calculator to quickly estimate your annual and quarterly federal tax liability. We automatically factor in the standard deduction and QBI deduction behind the scenes to give you a clear, accurate estimate of what you owe.</p>
+  <p>Estimate your total federal tax liability, including both your self-employment tax and federal income tax. We calculate the standard deduction and QBI deduction behind the scenes to give you a clear estimate.</p>
 
   <div class="form-group">
     <label for="se-income">Net self-employment income</label>
@@ -139,99 +148,74 @@
   <button id="calculate-btn">Calculate total tax</button>
 
   <div class="results" id="results-pane">
-    <div class="result-item"><span>Income subject to self-employment tax:</span> <span id="res-net"></span></div>
-    
-    <div class="result-item sub-item"><span>Social Security tax:</span> <span id="res-ss-tax"></span></div>
-    <div class="result-item sub-item"><span>Medicare tax:</span> <span id="res-med-tax"></span></div>
-    <div class="result-item sub-item" id="add-med-row" style="display:none;"><span>Additional Medicare tax:</span> <span id="res-add-med-tax"></span></div>
-    
-    <div class="result-item"><span><strong>Total self-employment tax:</strong></span> <span id="res-se-tax"></span></div>
-    <div class="result-item sub-item"><span><em>Deductible SE amount (50%):</em></span> <span id="res-deduct"></span></div>
-    
+    <div class="result-item" id="se-net-row"><span>Income subject to SE tax (92.35%):</span> <span id="res-net"></span></div>
+
+    <div class="result-item sub-item" id="w2-ss-row"><span>W-2 Social Security tax (6.2%):</span> <span id="res-w2-ss"></span></div>
+    <div class="result-item sub-item" id="w2-med-row"><span>W-2 Medicare tax (1.45%):</span> <span id="res-w2-med"></span></div>
+
+    <div class="result-item sub-item" id="se-ss-row"><span>SE Social Security tax (12.4%):</span> <span id="res-se-ss"></span></div>
+    <div class="result-item sub-item" id="se-med-row"><span>SE Medicare tax (2.9%):</span> <span id="res-se-med"></span></div>
+
+    <div class="result-item sub-item" id="add-med-row" style="display:none;"><span>Additional Medicare tax (0.9%):</span> <span id="res-add-med-tax"></span></div>
+
+    <div class="result-item"><span><strong>Total FICA tax:</strong></span> <span id="res-se-tax"></span></div>
+    <div class="result-item sub-item" id="deduct-row"><span><em>Deductible SE amount (50% of SE FICA):</em></span> <span id="res-deduct"></span></div>
+
+    <div class="result-item" style="margin-top: 15px;"><span><em>Estimated taxable income:</em></span> <span id="res-taxable"></span></div>
+    <div class="result-item sub-item" id="qbi-row"><span><em>QBI deduction (20%):</em></span> <span id="res-qbi"></span></div>
     <div class="result-item"><span><strong>Estimated federal income tax:</strong></span> <span id="res-fed-tax"></span></div>
     <div class="result-item"><span>Total federal tax liability:</span> <span id="res-total-liability"></span></div>
-    
+
     <div class="result-item green-text" id="w2-withholding-row" style="display:none;">
       <span><em>Less estimated W-2 taxes already paid:</em></span> <span id="res-w2-withheld"></span>
     </div>
 
-    <div class="result-item highlight"><span>Estimated remaining tax due:</span> <span id="res-remaining-tax"></span></div>
-    
-    <div class="result-item highlight"><span>Estimated quarterly payment:</span> <span id="res-quarterly"></span></div>
-    
+    <div class="result-item highlight" id="remaining-due-row"><span>Estimated remaining tax due:</span> <span id="res-remaining-tax"></span></div>
+    <div class="result-item refund-text" id="refund-row" style="display:none;"><span>Estimated refund:</span> <span id="res-refund"></span></div>
+    <div class="result-item highlight" id="quarterly-row"><span>Estimated quarterly payment:</span> <span id="res-quarterly"></span></div>
 
-    
     <div class="disclaimer">
-      <strong>Note:</strong> This tool estimates your liability using the standard deduction and a simplified QBI deduction. It also estimates W-2 withholdings automatically. You may still be subject to state/local taxes or underpayment penalties. Please consult a qualified tax professional.
+      <strong>Note:</strong> This tool estimates your liability using the standard deduction and a simplified QBI deduction (subject to income phase-outs). It also estimates W-2 withholdings automatically. You may still be subject to state/local taxes or underpayment penalties. Please consult a qualified tax professional.
     </div>
   </div>
 </div>
 
 <script>
-  // Pure Math Function
-  function calculateTotalFederalTax({
-    selfEmploymentIncome,
-    w2Wages = 0,
-    filingStatus = "single",
-    taxYear = 2026
-  }) {
-
+  function calculateTotalFederalTax({ selfEmploymentIncome, w2Wages = 0, filingStatus = "single", taxYear = 2026 }) {
     const config = {
-      2025: { 
-        ssCap: 176100, 
-        stdDed: { single: 15000, marriedJoint: 30000, marriedSeparate: 15000, headOfHousehold: 22500 }
+      2025: {
+        ssCap: 176100,
+        stdDed: { single: 15000, marriedJoint: 30000, marriedSeparate: 15000, headOfHousehold: 22500 },
+        // QBI phase-out ranges (start, end) per filing status
+        qbiPhaseOut: { single: [197300, 247300], marriedJoint: [394600, 444600], marriedSeparate: [197300, 247300], headOfHousehold: [197300, 247300] }
       },
-      2026: { 
-        ssCap: 184500, 
-        stdDed: { single: 15400, marriedJoint: 30800, marriedSeparate: 15400, headOfHousehold: 23100 }
+      2026: {
+        ssCap: 184500,
+        stdDed: { single: 15400, marriedJoint: 30800, marriedSeparate: 15400, headOfHousehold: 23100 },
+        qbiPhaseOut: { single: [202225, 252225], marriedJoint: [404450, 454450], marriedSeparate: [202225, 252225], headOfHousehold: [202225, 252225] }
       }
     };
 
-    const thresholds = { 
-      single: 200000, marriedJoint: 250000, marriedSeparate: 125000, headOfHousehold: 200000 
-    };
-    const rates = { ss: 0.124, medicare: 0.029, additionalMedicare: 0.009 };
+    // Additional Medicare Tax thresholds (based on gross combined income per IRS Form 8959)
+    const addlMedThresholds = { single: 200000, marriedJoint: 250000, marriedSeparate: 125000, headOfHousehold: 200000 };
 
     const taxBrackets = {
       2025: {
-        single: [
-          { rate: 0.10, max: 11925 }, { rate: 0.12, max: 48475 }, { rate: 0.22, max: 103350 },
-          { rate: 0.24, max: 197300 }, { rate: 0.32, max: 250525 }, { rate: 0.35, max: 626350 }, { rate: 0.37, max: Infinity }
-        ],
-        marriedJoint: [
-          { rate: 0.10, max: 23850 }, { rate: 0.12, max: 96950 }, { rate: 0.22, max: 206700 },
-          { rate: 0.24, max: 394600 }, { rate: 0.32, max: 501050 }, { rate: 0.35, max: 751600 }, { rate: 0.37, max: Infinity }
-        ],
-        marriedSeparate: [
-          { rate: 0.10, max: 11925 }, { rate: 0.12, max: 48475 }, { rate: 0.22, max: 103350 },
-          { rate: 0.24, max: 197300 }, { rate: 0.32, max: 250525 }, { rate: 0.35, max: 375800 }, { rate: 0.37, max: Infinity }
-        ],
-        headOfHousehold: [
-          { rate: 0.10, max: 17000 }, { rate: 0.12, max: 64850 }, { rate: 0.22, max: 103350 },
-          { rate: 0.24, max: 197300 }, { rate: 0.32, max: 250525 }, { rate: 0.35, max: 626350 }, { rate: 0.37, max: Infinity }
-        ]
+        single: [{rate: 0.10, max: 11925}, {rate: 0.12, max: 48475}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 626350}, {rate: 0.37, max: Infinity}],
+        marriedJoint: [{rate: 0.10, max: 23850}, {rate: 0.12, max: 96950}, {rate: 0.22, max: 206700}, {rate: 0.24, max: 394600}, {rate: 0.32, max: 501050}, {rate: 0.35, max: 751600}, {rate: 0.37, max: Infinity}],
+        marriedSeparate: [{rate: 0.10, max: 11925}, {rate: 0.12, max: 48475}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 375800}, {rate: 0.37, max: Infinity}],
+        headOfHousehold: [{rate: 0.10, max: 17000}, {rate: 0.12, max: 64850}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 626350}, {rate: 0.37, max: Infinity}]
       },
       2026: {
-        single: [
-          { rate: 0.10, max: 12225 }, { rate: 0.12, max: 49700 }, { rate: 0.22, max: 105950 },
-          { rate: 0.24, max: 202225 }, { rate: 0.32, max: 256800 }, { rate: 0.35, max: 642000 }, { rate: 0.37, max: Infinity }
-        ],
-        marriedJoint: [
-          { rate: 0.10, max: 24450 }, { rate: 0.12, max: 99400 }, { rate: 0.22, max: 211900 },
-          { rate: 0.24, max: 404450 }, { rate: 0.32, max: 513600 }, { rate: 0.35, max: 770400 }, { rate: 0.37, max: Infinity }
-        ],
-        marriedSeparate: [
-          { rate: 0.10, max: 12225 }, { rate: 0.12, max: 49700 }, { rate: 0.22, max: 105950 },
-          { rate: 0.24, max: 202225 }, { rate: 0.32, max: 256800 }, { rate: 0.35, max: 385200 }, { rate: 0.37, max: Infinity }
-        ],
-        headOfHousehold: [
-          { rate: 0.10, max: 17425 }, { rate: 0.12, max: 66475 }, { rate: 0.22, max: 105950 },
-          { rate: 0.24, max: 202225 }, { rate: 0.32, max: 256800 }, { rate: 0.35, max: 642000 }, { rate: 0.37, max: Infinity }
-        ]
+        single: [{rate: 0.10, max: 12225}, {rate: 0.12, max: 49700}, {rate: 0.22, max: 105950}, {rate: 0.24, max: 202225}, {rate: 0.32, max: 256800}, {rate: 0.35, max: 642000}, {rate: 0.37, max: Infinity}],
+        marriedJoint: [{rate: 0.10, max: 24450}, {rate: 0.12, max: 99400}, {rate: 0.22, max: 211900}, {rate: 0.24, max: 404450}, {rate: 0.32, max: 513600}, {rate: 0.35, max: 770400}, {rate: 0.37, max: Infinity}],
+        marriedSeparate: [{rate: 0.10, max: 12225}, {rate: 0.12, max: 49700}, {rate: 0.22, max: 105950}, {rate: 0.24, max: 202225}, {rate: 0.32, max: 256800}, {rate: 0.35, max: 385200}, {rate: 0.37, max: Infinity}],
+        headOfHousehold: [{rate: 0.10, max: 17425}, {rate: 0.12, max: 66475}, {rate: 0.22, max: 105950}, {rate: 0.24, max: 202225}, {rate: 0.32, max: 256800}, {rate: 0.35, max: 642000}, {rate: 0.37, max: Infinity}]
       }
     };
 
     const yearConfig = config[taxYear];
+
     function roundIRS(num) { return Math.round(num); }
 
     function calculateTaxFromBrackets(taxableAmount, bracketsArray) {
@@ -243,70 +227,107 @@
           const amountInBracket = Math.min(taxableAmount - previousMax, bracket.max - previousMax);
           tax += amountInBracket * bracket.rate;
           previousMax = bracket.max;
-        } else {
-          break; 
-        }
+        } else { break; }
       }
       return roundIRS(tax);
     }
 
-    let netEarnings = roundIRS(selfEmploymentIncome * 0.9235);
-    let ssTax = 0, medicareTax = 0, additionalMedicare = 0, totalSETax = 0, deductibleSETax = 0;
-    
-    if (netEarnings >= 400) {
-      const remainingSSCap = Math.max(0, yearConfig.ssCap - w2Wages);
-      const ssTaxable = Math.min(netEarnings, remainingSSCap);
-      
-      ssTax = roundIRS(ssTaxable * rates.ss);
-      medicareTax = roundIRS(netEarnings * rates.medicare);
-      
-      const combinedIncome = w2Wages + netEarnings;
-      if (combinedIncome > thresholds[filingStatus]) {
-        additionalMedicare = roundIRS((combinedIncome - thresholds[filingStatus]) * rates.additionalMedicare);
-      }
-      totalSETax = ssTax + medicareTax + additionalMedicare;
-      deductibleSETax = roundIRS(totalSETax / 2);
+    let netEarnings = 0, seSSTax = 0, seMedTax = 0, deductibleSETax = 0;
+    let w2SSTax = 0, w2MedTax = 0;
+
+    if (w2Wages > 0) {
+      w2SSTax = roundIRS(Math.min(w2Wages, yearConfig.ssCap) * 0.062);
+      w2MedTax = roundIRS(w2Wages * 0.0145);
     }
 
-    let qbiBase = Math.max(0, selfEmploymentIncome - deductibleSETax);
-    let qbiDeduction = roundIRS(qbiBase * 0.20);
+    if (selfEmploymentIncome > 0) {
+      netEarnings = roundIRS(selfEmploymentIncome * 0.9235);
+      if (netEarnings >= 400) {
+        const remainingSSCap = Math.max(0, yearConfig.ssCap - w2Wages);
+        const ssTaxable = Math.min(netEarnings, remainingSSCap);
+        seSSTax = roundIRS(ssTaxable * 0.124);
+        seMedTax = roundIRS(netEarnings * 0.029);
+        deductibleSETax = roundIRS((seSSTax + seMedTax) / 2);
+      } else {
+        netEarnings = 0;
+      }
+    }
 
-    const grossIncome = w2Wages + selfEmploymentIncome; 
+    // FIX 1: Additional Medicare Tax uses gross SE income (not netEarnings) per IRS Form 8959.
+    // The 0.9% threshold is tested against W-2 wages + gross self-employment income.
+    let additionalMedicare = 0;
+    const combinedIncomeForAddlMed = w2Wages + selfEmploymentIncome;
+    if (combinedIncomeForAddlMed > addlMedThresholds[filingStatus]) {
+      additionalMedicare = roundIRS((combinedIncomeForAddlMed - addlMedThresholds[filingStatus]) * 0.009);
+    }
+
+    const totalSS = w2SSTax + seSSTax;
+    const totalMed = w2MedTax + seMedTax + additionalMedicare;
+    const totalFicaTax = totalSS + totalMed;
+
+    // Gross income: allow negative SE income to offset W-2 (business loss scenario)
+    const grossIncome = w2Wages + selfEmploymentIncome;
     const agi = grossIncome - deductibleSETax;
     const standardDeduction = yearConfig.stdDed[filingStatus];
-    
-    let taxableIncome = Math.max(0, agi - standardDeduction - qbiDeduction);
-    const brackets = taxBrackets[taxYear][filingStatus];
-    
-    let federalIncomeTax = calculateTaxFromBrackets(taxableIncome, brackets);
 
-    let estimatedW2Withholding = 0;
-    if (w2Wages > 0) {
-      let w2Taxable = Math.max(0, w2Wages - standardDeduction);
-      estimatedW2Withholding = calculateTaxFromBrackets(w2Taxable, brackets);
+    // FIX 2: QBI deduction with income phase-out.
+    // QBI reduces only taxable income (not AGI). It phases out above the threshold range.
+    let qbiDeduction = 0;
+    if (selfEmploymentIncome > 0 && deductibleSETax > 0) {
+      const qbiBase = Math.max(0, selfEmploymentIncome - deductibleSETax);
+      const [phaseStart, phaseEnd] = yearConfig.qbiPhaseOut[filingStatus];
+      if (agi <= phaseStart) {
+        qbiDeduction = roundIRS(qbiBase * 0.20);
+      } else if (agi < phaseEnd) {
+        const phaseRatio = 1 - (agi - phaseStart) / (phaseEnd - phaseStart);
+        qbiDeduction = roundIRS(qbiBase * 0.20 * phaseRatio);
+      }
+      // else qbiDeduction stays 0 — fully phased out
+    } else if (selfEmploymentIncome > 0) {
+      // SE income present but no SE tax (e.g. below $400 threshold) — still allow QBI
+      const qbiBase = Math.max(0, selfEmploymentIncome);
+      const [phaseStart, phaseEnd] = yearConfig.qbiPhaseOut[filingStatus];
+      if (agi <= phaseStart) {
+        qbiDeduction = roundIRS(qbiBase * 0.20);
+      } else if (agi < phaseEnd) {
+        const phaseRatio = 1 - (agi - phaseStart) / (phaseEnd - phaseStart);
+        qbiDeduction = roundIRS(qbiBase * 0.20 * phaseRatio);
+      }
     }
 
-    let totalFederalLiability = totalSETax + federalIncomeTax;
-    let remainingTaxDue = Math.max(0, totalFederalLiability - estimatedW2Withholding);
+    let taxableIncome = Math.max(0, agi - standardDeduction - qbiDeduction);
+    const brackets = taxBrackets[taxYear][filingStatus];
+    let federalIncomeTax = calculateTaxFromBrackets(taxableIncome, brackets);
+
+    // FIX 3: W-2 withholding estimate uses a proportional share of the standard deduction.
+    // The employer withholds based on the W-2 wages only, so we apportion the standard
+    // deduction by the share of income that is W-2, which better approximates actual withholding.
+    let estimatedW2Withholding = 0;
+    let estimatedW2FicaWithholding = 0;
+    if (w2Wages > 0) {
+      const totalGross = Math.max(w2Wages, w2Wages + selfEmploymentIncome); // guard against 0 denominator
+      const w2Share = totalGross > 0 ? w2Wages / totalGross : 1;
+      const w2ApportionedStdDed = standardDeduction * w2Share;
+      const w2Taxable = Math.max(0, w2Wages - w2ApportionedStdDed);
+      const w2FedIncomeWithheld = calculateTaxFromBrackets(w2Taxable, brackets);
+      estimatedW2FicaWithholding = w2SSTax + w2MedTax;
+      estimatedW2Withholding = w2FedIncomeWithheld + estimatedW2FicaWithholding;
+    }
+
+    let totalFederalLiability = totalFicaTax + federalIncomeTax;
+    // Net balance: negative = refund, positive = amount owed
+    let netBalance = totalFederalLiability - estimatedW2Withholding;
 
     return {
-      netEarnings,
-      ssTax,
-      medicareTax,
-      additionalMedicare,
-      totalSETax,
-      deductibleSETax,
-      federalIncomeTax,
-      totalFederalLiability,
-      estimatedW2Withholding,
-      remainingTaxDue
+      netEarnings, w2SSTax, w2MedTax, seSSTax, seMedTax,
+      additionalMedicare, totalFicaTax, deductibleSETax,
+      qbiDeduction, taxableIncome, federalIncomeTax, totalFederalLiability,
+      estimatedW2Withholding, netBalance
     };
   }
 
-  // jQuery DOM Interaction
   $(document).ready(function() {
     $('#calculate-btn').click(function() {
-      // Pull values using jQuery
       const seIncome = parseFloat($('#se-income').val()) || 0;
       const w2Wages = parseFloat($('#w2-wages').val()) || 0;
       const filingStatus = $('#filing-status').val();
@@ -319,45 +340,74 @@
         taxYear: taxYear
       });
 
-      const formatMoney = (amount) => '$' + amount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+      const formatMoney = (amount) => '$' + Math.abs(amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-      // Bind outputs using jQuery
-      $('#res-net').text(formatMoney(results.netEarnings));
-      $('#res-ss-tax').text(formatMoney(results.ssTax));
-      $('#res-med-tax').text(formatMoney(results.medicareTax));
-      
-      // Toggle logic for additional Medicare using jQuery
-      if(results.additionalMedicare > 0) {
-          $('#res-add-med-tax').text(formatMoney(results.additionalMedicare));
-          $('#add-med-row').css('display', 'flex');
+      if (w2Wages === 0) {
+        $('#w2-ss-row, #w2-med-row').hide();
       } else {
-          $('#add-med-row').hide();
+        $('#w2-ss-row, #w2-med-row').css('display', 'flex');
       }
 
-      $('#res-se-tax').text(formatMoney(results.totalSETax));
+      if (seIncome === 0) {
+        $('#se-net-row, #se-ss-row, #se-med-row, #deduct-row').hide();
+      } else {
+        $('#se-net-row, #se-ss-row, #se-med-row, #deduct-row').css('display', 'flex');
+      }
+
+      $('#res-net').text(formatMoney(results.netEarnings));
+      $('#res-w2-ss').text(formatMoney(results.w2SSTax));
+      $('#res-w2-med').text(formatMoney(results.w2MedTax));
+      $('#res-se-ss').text(formatMoney(results.seSSTax));
+      $('#res-se-med').text(formatMoney(results.seMedTax));
+
+      if (results.additionalMedicare > 0) {
+        $('#res-add-med-tax').text(formatMoney(results.additionalMedicare));
+        $('#add-med-row').css('display', 'flex');
+      } else {
+        $('#add-med-row').hide();
+      }
+
+      $('#res-se-tax').text(formatMoney(results.totalFicaTax));
       $('#res-deduct').text(formatMoney(results.deductibleSETax));
+
+      $('#res-taxable').text(formatMoney(results.taxableIncome));
+
+      if (results.qbiDeduction > 0) {
+        $('#res-qbi').text(formatMoney(results.qbiDeduction));
+        $('#qbi-row').css('display', 'flex');
+      } else {
+        $('#qbi-row').hide();
+      }
+
       $('#res-fed-tax').text(formatMoney(results.federalIncomeTax));
       $('#res-total-liability').text(formatMoney(results.totalFederalLiability));
 
-      // Toggle logic for W2 Withholding using jQuery
       if (results.estimatedW2Withholding > 0) {
-        $('#res-w2-withheld').text("-" + formatMoney(results.estimatedW2Withholding));
+        $('#res-w2-withheld').text('-' + formatMoney(results.estimatedW2Withholding));
         $('#w2-withholding-row').css('display', 'flex');
       } else {
         $('#w2-withholding-row').hide();
       }
 
-     $('#res-remaining-tax').text(formatMoney(results.remainingTaxDue));
+      // Show refund or amount due
+      if (results.netBalance < 0) {
+        // Overpaid — show refund
+        $('#remaining-due-row, #quarterly-row').hide();
+        $('#res-refund').text(formatMoney(results.netBalance));
+        $('#refund-row').css('display', 'flex');
+      } else {
+        $('#refund-row').hide();
+        $('#res-remaining-tax').text(formatMoney(results.netBalance));
+        $('#remaining-due-row').css('display', 'flex');
+        const quarterlyPayment = results.netBalance / 4;
+        $('#res-quarterly').text(formatMoney(quarterlyPayment));
+        $('#quarterly-row').css('display', 'flex');
+      }
 
-      // ADD THESE TWO LINES RIGHT HERE
-      let quarterlyPayment = results.remainingTaxDue / 4;
-      $('#res-quarterly').text(formatMoney(quarterlyPayment));
-
-      // Show results with a smooth jQuery fade effect
       $('#results-pane').fadeIn(300);
     });
   });
 </script>
-
 </body>
+</html>
 </html>
