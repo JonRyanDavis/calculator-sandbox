@@ -185,14 +185,19 @@
     const config = {
       2025: {
         ssCap: 176100,
-        stdDed: { single: 15000, marriedJoint: 30000, marriedSeparate: 15000, headOfHousehold: 22500 },
-        // QBI phase-out ranges (start, end) per filing status
-        qbiPhaseOut: { single: [197300, 247300], marriedJoint: [394600, 444600], marriedSeparate: [197300, 247300], headOfHousehold: [197300, 247300] }
+        // Standard deductions per Rev. Proc. 2025-32 Section 3 (OBBBA amendments, effective 2025)
+        stdDed: { single: 15750, marriedJoint: 31500, marriedSeparate: 15750, headOfHousehold: 23625 },
+        // QBI phase-out ranges per Rev. Proc. 2025-32 (§199A thresholds for 2025 — use prior-year amounts;
+        // OBBBA QBI threshold update applies to 2026+)
+        qbiPhaseOut: { single: [197300, 247300], marriedJoint: [394600, 444600], marriedSeparate: [98650, 123650], headOfHousehold: [197300, 247300] }
       },
       2026: {
         ssCap: 184500,
-        stdDed: { single: 15400, marriedJoint: 30800, marriedSeparate: 15400, headOfHousehold: 23100 },
-        qbiPhaseOut: { single: [202225, 252225], marriedJoint: [404450, 454450], marriedSeparate: [202225, 252225], headOfHousehold: [202225, 252225] }
+        // Standard deductions per Rev. Proc. 2025-32 Section 4.14 (2026 inflation-adjusted amounts)
+        stdDed: { single: 16100, marriedJoint: 32200, marriedSeparate: 16100, headOfHousehold: 24150 },
+        // QBI phase-in thresholds per Rev. Proc. 2025-32 Section 4.26 (§199A)
+        // MFS is exactly half of MFJ per statute; single/HOH share the "all other returns" threshold
+        qbiPhaseOut: { single: [201750, 276750], marriedJoint: [403500, 553500], marriedSeparate: [201775, 276775], headOfHousehold: [201750, 276750] }
       }
     };
 
@@ -206,11 +211,12 @@
         marriedSeparate: [{rate: 0.10, max: 11925}, {rate: 0.12, max: 48475}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 375800}, {rate: 0.37, max: Infinity}],
         headOfHousehold: [{rate: 0.10, max: 17000}, {rate: 0.12, max: 64850}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 626350}, {rate: 0.37, max: Infinity}]
       },
+      // 2026 brackets per Rev. Proc. 2025-32, Section 4.01 (Tables 1-4)
       2026: {
-        single: [{rate: 0.10, max: 12225}, {rate: 0.12, max: 49700}, {rate: 0.22, max: 105950}, {rate: 0.24, max: 202225}, {rate: 0.32, max: 256800}, {rate: 0.35, max: 642000}, {rate: 0.37, max: Infinity}],
-        marriedJoint: [{rate: 0.10, max: 24450}, {rate: 0.12, max: 99400}, {rate: 0.22, max: 211900}, {rate: 0.24, max: 404450}, {rate: 0.32, max: 513600}, {rate: 0.35, max: 770400}, {rate: 0.37, max: Infinity}],
-        marriedSeparate: [{rate: 0.10, max: 12225}, {rate: 0.12, max: 49700}, {rate: 0.22, max: 105950}, {rate: 0.24, max: 202225}, {rate: 0.32, max: 256800}, {rate: 0.35, max: 385200}, {rate: 0.37, max: Infinity}],
-        headOfHousehold: [{rate: 0.10, max: 17425}, {rate: 0.12, max: 66475}, {rate: 0.22, max: 105950}, {rate: 0.24, max: 202225}, {rate: 0.32, max: 256800}, {rate: 0.35, max: 642000}, {rate: 0.37, max: Infinity}]
+        single:         [{rate: 0.10, max: 12400}, {rate: 0.12, max: 50400}, {rate: 0.22, max: 105700}, {rate: 0.24, max: 201775}, {rate: 0.32, max: 256225}, {rate: 0.35, max: 640600}, {rate: 0.37, max: Infinity}],
+        marriedJoint:   [{rate: 0.10, max: 24800}, {rate: 0.12, max: 100800}, {rate: 0.22, max: 211400}, {rate: 0.24, max: 403550}, {rate: 0.32, max: 512450}, {rate: 0.35, max: 768700}, {rate: 0.37, max: Infinity}],
+        marriedSeparate:[{rate: 0.10, max: 12400}, {rate: 0.12, max: 50400}, {rate: 0.22, max: 105700}, {rate: 0.24, max: 201775}, {rate: 0.32, max: 256225}, {rate: 0.35, max: 384350}, {rate: 0.37, max: Infinity}],
+        headOfHousehold:[{rate: 0.10, max: 17700}, {rate: 0.12, max: 67450}, {rate: 0.22, max: 105700}, {rate: 0.24, max: 201750}, {rate: 0.32, max: 256200}, {rate: 0.35, max: 640600}, {rate: 0.37, max: Infinity}]
       }
     };
 
@@ -272,26 +278,23 @@
 
     // FIX 2: QBI deduction with income phase-out.
     // QBI reduces only taxable income (not AGI). It phases out above the threshold range.
+    // OBBBA (effective 2026): minimum $400 deduction if QBI >= $1,000; otherwise standard phase-out applies.
     let qbiDeduction = 0;
-    if (selfEmploymentIncome > 0 && deductibleSETax > 0) {
-      const qbiBase = Math.max(0, selfEmploymentIncome - deductibleSETax);
+    const qbiBase = selfEmploymentIncome > 0 ? Math.max(0, selfEmploymentIncome - deductibleSETax) : 0;
+    if (qbiBase > 0) {
       const [phaseStart, phaseEnd] = yearConfig.qbiPhaseOut[filingStatus];
+      let computedQBI = 0;
       if (agi <= phaseStart) {
-        qbiDeduction = roundIRS(qbiBase * 0.20);
+        computedQBI = roundIRS(qbiBase * 0.20);
       } else if (agi < phaseEnd) {
         const phaseRatio = 1 - (agi - phaseStart) / (phaseEnd - phaseStart);
-        qbiDeduction = roundIRS(qbiBase * 0.20 * phaseRatio);
+        computedQBI = roundIRS(qbiBase * 0.20 * phaseRatio);
       }
-      // else qbiDeduction stays 0 — fully phased out
-    } else if (selfEmploymentIncome > 0) {
-      // SE income present but no SE tax (e.g. below $400 threshold) — still allow QBI
-      const qbiBase = Math.max(0, selfEmploymentIncome);
-      const [phaseStart, phaseEnd] = yearConfig.qbiPhaseOut[filingStatus];
-      if (agi <= phaseStart) {
-        qbiDeduction = roundIRS(qbiBase * 0.20);
-      } else if (agi < phaseEnd) {
-        const phaseRatio = 1 - (agi - phaseStart) / (phaseEnd - phaseStart);
-        qbiDeduction = roundIRS(qbiBase * 0.20 * phaseRatio);
+      // OBBBA §199A(i): for 2026+, minimum $400 deduction if QBI >= $1,000
+      if (taxYear >= 2026 && qbiBase >= 1000) {
+        qbiDeduction = Math.max(computedQBI, 400);
+      } else {
+        qbiDeduction = computedQBI;
       }
     }
 
