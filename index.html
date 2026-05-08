@@ -1,415 +1,552 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Total federal tax calculator</title>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Federal Tax Liability Calculator</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-<style>
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    color: #131924;
-    background-color: #F4F5F5;
-    line-height: 1.6;
-    padding: 20px;
-  }
-  .calculator-container {
-    max-width: 600px;
-    margin: 0 auto;
-    background: #FFFFFF;
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    text-align: left;
-  }
-  h2 {
-    color: #012656;
-    margin-top: 0;
-  }
-  .form-group {
-    margin-bottom: 20px;
-  }
-  label {
-    display: block;
-    font-weight: 600;
-    margin-bottom: 5px;
-    color: #012656;
-  }
-  input[type="number"], select {
-    width: 100%;
-    padding: 10px;
-    border: 1px solid #B7BBBE;
-    border-radius: 4px;
-    font-size: 16px;
-    box-sizing: border-box;
-  }
-  button {
-    background-color: #14C691;
-    color: #FFFFFF;
-    border: none;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    border-radius: 4px;
-    cursor: pointer;
-    width: 100%;
-    transition: background-color 0.2s;
-  }
-  button:hover {
-    background-color: #11A77A;
-  }
-  .results {
-    margin-top: 30px;
-    padding: 20px;
-    background-color: #AED1FE;
-    border-radius: 8px;
-    display: none;
-  }
-  .result-item {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 10px;
-    border-bottom: 1px solid rgba(255,255,255,0.6);
-    padding-bottom: 5px;
-  }
-  .result-item.sub-item {
-    font-size: 0.9em;
-    color: #333;
-    padding-left: 15px;
-    border-bottom: none;
-    margin-bottom: 5px;
-  }
-  .result-item.highlight {
-    border-bottom: none;
-    font-weight: bold;
-    font-size: 1.15em;
-    color: #012656;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 2px solid #012656;
-  }
-  .result-item.green-text {
-    color: #11A77A;
-    font-style: italic;
-  }
-  .result-item.refund-text {
-    color: #11A77A;
-    font-weight: bold;
-    font-size: 1.15em;
-    margin-top: 15px;
-    padding-top: 10px;
-    border-top: 2px solid #012656;
-    border-bottom: none;
-  }
-  .disclaimer {
-    font-size: 0.85em;
-    color: #012656;
-    margin-top: 20px;
-    font-style: italic;
-    opacity: 0.8;
-  }
-</style>
+    :root {
+      --primary: #003366;
+      --accent: #ad0e0e;
+      --bg: #f4f7f9;
+      --card: #ffffff;
+      --border: #e0e4ea;
+      --text: #1a1a2e;
+      --text-muted: #6b7280;
+      --success: #16a34a;
+      --danger: #dc2626;
+      --info: #1d6db5;
+      --radius: 8px;
+      --radius-lg: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px 16px;
+      min-height: 100vh;
+    }
+
+    .page { max-width: 960px; margin: 0 auto; }
+
+    /* Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header h1 { font-size: 22px; font-weight: 600; color: var(--primary); }
+    .header p { font-size: 13px; color: var(--text-muted); margin-top: 3px; }
+
+    .year-toggle { display: flex; gap: 6px; }
+    .year-btn {
+      padding: 8px 18px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .year-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .year-btn.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Metric cards */
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .metric {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 16px 18px;
+    }
+    .metric-label { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+    .metric-value { font-size: 26px; font-weight: 700; }
+    .metric-value.danger { color: var(--danger); }
+    .metric-value.success { color: var(--success); }
+    .metric-value.info { color: var(--info); }
+    .metric-value.neutral { color: var(--text); }
+
+    /* Two-column layout */
+    .two-col {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 16px;
+      align-items: start;
+    }
+    @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } }
+
+    /* Cards */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+    }
+    .card-title {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 18px;
+    }
+
+    /* Form fields */
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 13px; font-weight: 500; color: var(--text-muted); margin-bottom: 6px; }
+    .field input, .field select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 15px;
+      color: var(--text);
+      background: #fff;
+      transition: border-color 0.15s;
+    }
+    .field input:focus, .field select:focus { outline: none; border-color: var(--primary); }
+
+    .divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+    /* Deduction waterfall */
+    .waterfall-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 5px 0;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .waterfall-row.highlight { color: var(--text); font-weight: 600; font-size: 14px; }
+    .waterfall-row .tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: #e8f5e9;
+      color: #2e7d32;
+      margin-left: 5px;
+      font-weight: 600;
+    }
+
+    /* Summary tiles */
+    .tiles {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .tile {
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 12px;
+      text-align: center;
+    }
+    .tile-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .tile-value { font-size: 18px; font-weight: 700; color: var(--text); }
+    .tile-value.green { color: var(--success); }
+
+    /* Breakdown rows */
+    .break-section { margin-bottom: 6px; }
+    .break-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 0;
+      font-size: 14px;
+      border-bottom: 1px solid var(--bg);
+    }
+    .break-row:last-child { border-bottom: none; }
+    .break-row.total {
+      font-weight: 700;
+      font-size: 15px;
+      border-top: 2px solid var(--border);
+      border-bottom: none;
+      padding-top: 10px;
+      margin-top: 6px;
+    }
+    .break-row.credit { color: var(--success); font-size: 13px; }
+    .break-row.owed { font-weight: 700; font-size: 15px; color: var(--danger); border-top: 1px solid var(--border); padding-top: 10px; margin-top: 4px; }
+
+    /* Bar */
+    .bar-wrap { height: 7px; background: var(--bg); border-radius: 4px; overflow: hidden; margin: 4px 0 10px; }
+    .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s ease; }
+
+    /* Bracket list */
+    .bracket-section-title { font-size: 13px; font-weight: 600; margin: 16px 0 8px; color: var(--text); }
+    .b-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 6px 0;
+      border-bottom: 1px solid var(--bg);
+      font-size: 13px;
+    }
+    .b-row:last-child { border: none; }
+    .b-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .b-pct { font-weight: 700; min-width: 36px; color: var(--text); }
+    .b-range { color: var(--text-muted); flex: 1; }
+    .b-amt { min-width: 72px; text-align: right; font-weight: 500; }
+
+    /* Disclaimer */
+    .disc {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 18px;
+      line-height: 1.6;
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+  </style>
 </head>
 <body>
 
-<div class="calculator-container">
-  <h2>Total federal tax calculator</h2>
-  <p>Estimate your total federal tax liability, including both your self-employment tax and federal income tax. We calculate the standard deduction and QBI deduction behind the scenes to give you a clear estimate.</p>
+<div class="page">
 
-  <div class="form-group">
-    <label for="se-income">Net self-employment income</label>
-    <input type="number" id="se-income" placeholder="e.g. 75000" min="0" step="1">
+  <div class="header">
+    <div>
+      <h1>Federal Tax Liability Calculator</h1>
+      <p>1099 self-employment + W-2 income &mdash; 2025 &amp; 2026 tax years</p>
+    </div>
+    <div class="year-toggle">
+      <button class="year-btn" onclick="setYear(2025, this)">2025</button>
+      <button class="year-btn active" onclick="setYear(2026, this)">2026</button>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label for="w2-wages">W-2 wages (if applicable)</label>
-    <input type="number" id="w2-wages" value="0" min="0" step="1">
+  <!-- Top metrics -->
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Total federal tax</div>
+      <div class="metric-value danger" id="m-total">$0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Effective rate</div>
+      <div class="metric-value neutral" id="m-eff">0.0%</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Est. quarterly payment</div>
+      <div class="metric-value info" id="m-quarterly">$0</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Remaining owed</div>
+      <div class="metric-value neutral" id="m-owed">&mdash;</div>
+    </div>
   </div>
 
-  <div class="form-group">
-    <label for="filing-status">Filing status</label>
-    <select id="filing-status">
-      <option value="single">Single</option>
-      <option value="marriedJoint">Married filing jointly</option>
-      <option value="marriedSeparate">Married filing separately</option>
-      <option value="headOfHousehold">Head of household</option>
-    </select>
-  </div>
+  <div class="two-col">
 
-  <div class="form-group">
-    <label for="tax-year">Tax year</label>
-    <select id="tax-year">
-      <option value="2026">2026</option>
-      <option value="2025">2025</option>
-    </select>
-  </div>
+    <!-- LEFT: Inputs -->
+    <div class="card">
+      <div class="card-title">Inputs</div>
 
-  <button id="calculate-btn">Calculate total tax</button>
+      <div class="field">
+        <label>1099 / Self-employment income ($)</label>
+        <input type="number" id="inc1099" placeholder="e.g. 80000" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>W-2 wages ($)</label>
+        <input type="number" id="incW2" placeholder="e.g. 0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>W-2 federal tax withheld YTD ($)</label>
+        <input type="number" id="withheld" placeholder="e.g. 0" oninput="calc()">
+      </div>
+      <div class="field">
+        <label>Filing status</label>
+        <select id="filing" onchange="calc()">
+          <option value="single">Single</option>
+          <option value="married">Married filing jointly</option>
+          <option value="hoh">Head of household</option>
+        </select>
+      </div>
 
-  <div class="results" id="results-pane">
-    <div class="result-item" id="se-net-row"><span>Income subject to SE tax (92.35%):</span> <span id="res-net"></span></div>
+      <hr class="divider">
+      <div class="card-title" style="margin-bottom:12px;">Deduction waterfall</div>
 
-    <div class="result-item sub-item" id="w2-ss-row"><span>W-2 Social Security tax (6.2%):</span> <span id="res-w2-ss"></span></div>
-    <div class="result-item sub-item" id="w2-med-row"><span>W-2 Medicare tax (1.45%):</span> <span id="res-w2-med"></span></div>
-
-    <div class="result-item sub-item" id="se-ss-row"><span>SE Social Security tax (12.4%):</span> <span id="res-se-ss"></span></div>
-    <div class="result-item sub-item" id="se-med-row"><span>SE Medicare tax (2.9%):</span> <span id="res-se-med"></span></div>
-
-    <div class="result-item sub-item" id="add-med-row" style="display:none;"><span>Additional Medicare tax (0.9%):</span> <span id="res-add-med-tax"></span></div>
-
-    <div class="result-item"><span><strong>Total FICA tax:</strong></span> <span id="res-se-tax"></span></div>
-    <div class="result-item sub-item" id="deduct-row"><span><em>Deductible SE amount (50% of SE FICA):</em></span> <span id="res-deduct"></span></div>
-
-    <div class="result-item" style="margin-top: 15px;"><span><em>Estimated taxable income:</em></span> <span id="res-taxable"></span></div>
-    <div class="result-item sub-item" id="qbi-row"><span><em>QBI deduction (20%):</em></span> <span id="res-qbi"></span></div>
-    <div class="result-item"><span><strong>Estimated federal income tax:</strong></span> <span id="res-fed-tax"></span></div>
-    <div class="result-item"><span>Total federal tax liability:</span> <span id="res-total-liability"></span></div>
-
-    <div class="result-item green-text" id="w2-withholding-row" style="display:none;">
-      <span><em>Less estimated W-2 taxes already paid:</em></span> <span id="res-w2-withheld"></span>
+      <div class="waterfall-row">
+        <span>Gross income</span>
+        <span id="w-gross">&mdash;</span>
+      </div>
+      <div class="waterfall-row">
+        <span>&#8722; &frac12; SE tax deduction</span>
+        <span id="w-sededuct">&mdash;</span>
+      </div>
+      <div class="waterfall-row">
+        <span>= Adjusted gross income</span>
+        <span id="w-agi">&mdash;</span>
+      </div>
+      <div class="waterfall-row">
+        <span>&#8722; Standard deduction</span>
+        <span id="w-stdded">&mdash;</span>
+      </div>
+      <div class="waterfall-row">
+        <span>&#8722; QBI deduction (20%) <span class="tag">199A</span></span>
+        <span id="w-qbi">&mdash;</span>
+      </div>
+      <div class="waterfall-row highlight">
+        <span>= Taxable income</span>
+        <span id="w-taxable">&mdash;</span>
+      </div>
     </div>
 
-    <div class="result-item highlight" id="remaining-due-row"><span>Estimated remaining tax due:</span> <span id="res-remaining-tax"></span></div>
-    <div class="result-item refund-text" id="refund-row" style="display:none;"><span>Estimated refund:</span> <span id="res-refund"></span></div>
-    <div class="result-item highlight" id="quarterly-row"><span>Estimated quarterly payment:</span> <span id="res-quarterly"></span></div>
+    <!-- RIGHT: Results -->
+    <div class="card">
+      <div class="card-title">Tax breakdown</div>
 
-    <div class="disclaimer">
-      <strong>Note:</strong> This tool estimates your liability using the standard deduction and a simplified QBI deduction (subject to income phase-outs). It also estimates W-2 withholdings automatically. You may still be subject to state/local taxes or underpayment penalties. Please consult a qualified tax professional.
+      <!-- Summary tiles -->
+      <div class="tiles">
+        <div class="tile">
+          <div class="tile-label">Self-employment tax</div>
+          <div class="tile-value" id="t-se">$0</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Federal income tax</div>
+          <div class="tile-value" id="t-fed">$0</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">Add'l Medicare (0.9%)</div>
+          <div class="tile-value" id="t-amt">&mdash;</div>
+        </div>
+        <div class="tile">
+          <div class="tile-label">W-2 withheld credit</div>
+          <div class="tile-value green" id="t-credit">&mdash;</div>
+        </div>
+      </div>
+
+      <!-- Bars + rows -->
+      <div class="break-section">
+        <div class="break-row">
+          <span>Self-employment tax (15.3%)</span>
+          <span id="r-se">$0</span>
+        </div>
+        <div class="bar-wrap"><div class="bar-fill" id="bar-se" style="width:0%;background:#dc2626"></div></div>
+
+        <div class="break-row">
+          <span>Federal income tax</span>
+          <span id="r-fed">$0</span>
+        </div>
+        <div class="bar-wrap"><div class="bar-fill" id="bar-fed" style="width:0%;background:#1d6db5"></div></div>
+
+        <div class="break-row">
+          <span>Additional Medicare tax (0.9%)</span>
+          <span id="r-amt">$0</span>
+        </div>
+        <div class="bar-wrap"><div class="bar-fill" id="bar-amt" style="width:0%;background:#d97706"></div></div>
+
+        <div class="break-row total">
+          <span>Total federal tax</span>
+          <span id="r-total">$0</span>
+        </div>
+        <div class="break-row credit">
+          <span>&#8722; W-2 withholding credit</span>
+          <span id="r-credit">&mdash;</span>
+        </div>
+        <div class="break-row owed">
+          <span>Remaining owed at filing</span>
+          <span id="r-owed">&mdash;</span>
+        </div>
+      </div>
+
+      <!-- Bracket breakdown -->
+      <div class="bracket-section-title">Marginal bracket analysis</div>
+      <div id="bracket-list">
+        <div style="font-size:13px;color:var(--text-muted);">Enter income above to see bracket breakdown.</div>
+      </div>
+
+      <div class="disc">
+        <strong>Notes:</strong> QBI deduction is 20% for both 2025 and 2026 per the One Big Beautiful Bill Act (OBBBA).
+        Additional Medicare Tax of 0.9% applies to income over $200,000 (single / HoH) or $250,000 (married filing jointly).
+        This calculator is for estimation purposes only and does not constitute tax advice.
+        It does not account for state taxes, AMT, tax credits, investment income, or itemized deductions.
+      </div>
     </div>
+
   </div>
 </div>
 
 <script>
-  function calculateTotalFederalTax({ selfEmploymentIncome, w2Wages = 0, filingStatus = "single", taxYear = 2026 }) {
-    const config = {
-      2025: {
-        ssCap: 176100,
-        // Standard deductions per Rev. Proc. 2025-32 Section 3 (OBBBA amendments, effective 2025)
-        stdDed: { single: 15750, marriedJoint: 31500, marriedSeparate: 15750, headOfHousehold: 23625 },
-        // QBI phase-out ranges per Rev. Proc. 2025-32 (§199A thresholds for 2025 — use prior-year amounts;
-        // OBBBA QBI threshold update applies to 2026+)
-        qbiPhaseOut: { single: [197300, 247300], marriedJoint: [394600, 444600], marriedSeparate: [98650, 123650], headOfHousehold: [197300, 247300] }
-      },
-      2026: {
-        ssCap: 184500,
-        // Standard deductions per Rev. Proc. 2025-32 Section 4.14 (2026 inflation-adjusted amounts)
-        stdDed: { single: 16100, marriedJoint: 32200, marriedSeparate: 16100, headOfHousehold: 24150 },
-        // QBI phase-in thresholds per Rev. Proc. 2025-32 Section 4.26 (§199A)
-        // MFS is exactly half of MFJ per statute; single/HOH share the "all other returns" threshold
-        qbiPhaseOut: { single: [201750, 276750], marriedJoint: [403500, 553500], marriedSeparate: [201775, 276775], headOfHousehold: [201750, 276750] }
+  const COLORS = ['#dc2626','#1d6db5','#16a34a','#d97706','#7c3aed','#db2777','#0891b2'];
+
+  const TAX_DATA = {
+    2025: {
+      stdDed: { single: 15000, married: 30000, hoh: 22500 },
+      seCap: 176100,
+      qbiRate: 0.20,
+      amtThresh: { single: 200000, married: 250000, hoh: 200000 },
+      brackets: {
+        single:  [[11925,0.10],[48475,0.12],[103350,0.22],[197300,0.24],[250525,0.32],[626350,0.35],[Infinity,0.37]],
+        married: [[23850,0.10],[96950,0.12],[206700,0.22],[394600,0.24],[501050,0.32],[751600,0.35],[Infinity,0.37]],
+        hoh:     [[17000,0.10],[64850,0.12],[103350,0.22],[197300,0.24],[250500,0.32],[626350,0.35],[Infinity,0.37]]
       }
-    };
-
-    // Additional Medicare Tax thresholds (based on gross combined income per IRS Form 8959)
-    const addlMedThresholds = { single: 200000, marriedJoint: 250000, marriedSeparate: 125000, headOfHousehold: 200000 };
-
-    const taxBrackets = {
-      2025: {
-        single: [{rate: 0.10, max: 11925}, {rate: 0.12, max: 48475}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 626350}, {rate: 0.37, max: Infinity}],
-        marriedJoint: [{rate: 0.10, max: 23850}, {rate: 0.12, max: 96950}, {rate: 0.22, max: 206700}, {rate: 0.24, max: 394600}, {rate: 0.32, max: 501050}, {rate: 0.35, max: 751600}, {rate: 0.37, max: Infinity}],
-        marriedSeparate: [{rate: 0.10, max: 11925}, {rate: 0.12, max: 48475}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 375800}, {rate: 0.37, max: Infinity}],
-        headOfHousehold: [{rate: 0.10, max: 17000}, {rate: 0.12, max: 64850}, {rate: 0.22, max: 103350}, {rate: 0.24, max: 197300}, {rate: 0.32, max: 250525}, {rate: 0.35, max: 626350}, {rate: 0.37, max: Infinity}]
-      },
-      // 2026 brackets per Rev. Proc. 2025-32, Section 4.01 (Tables 1-4)
-      2026: {
-        single:         [{rate: 0.10, max: 12400}, {rate: 0.12, max: 50400}, {rate: 0.22, max: 105700}, {rate: 0.24, max: 201775}, {rate: 0.32, max: 256225}, {rate: 0.35, max: 640600}, {rate: 0.37, max: Infinity}],
-        marriedJoint:   [{rate: 0.10, max: 24800}, {rate: 0.12, max: 100800}, {rate: 0.22, max: 211400}, {rate: 0.24, max: 403550}, {rate: 0.32, max: 512450}, {rate: 0.35, max: 768700}, {rate: 0.37, max: Infinity}],
-        marriedSeparate:[{rate: 0.10, max: 12400}, {rate: 0.12, max: 50400}, {rate: 0.22, max: 105700}, {rate: 0.24, max: 201775}, {rate: 0.32, max: 256225}, {rate: 0.35, max: 384350}, {rate: 0.37, max: Infinity}],
-        headOfHousehold:[{rate: 0.10, max: 17700}, {rate: 0.12, max: 67450}, {rate: 0.22, max: 105700}, {rate: 0.24, max: 201750}, {rate: 0.32, max: 256200}, {rate: 0.35, max: 640600}, {rate: 0.37, max: Infinity}]
-      }
-    };
-
-    const yearConfig = config[taxYear];
-
-    function roundIRS(num) { return Math.round(num); }
-
-    function calculateTaxFromBrackets(taxableAmount, bracketsArray) {
-      let tax = 0;
-      let previousMax = 0;
-      for (let i = 0; i < bracketsArray.length; i++) {
-        const bracket = bracketsArray[i];
-        if (taxableAmount > previousMax) {
-          const amountInBracket = Math.min(taxableAmount - previousMax, bracket.max - previousMax);
-          tax += amountInBracket * bracket.rate;
-          previousMax = bracket.max;
-        } else { break; }
-      }
-      return roundIRS(tax);
-    }
-
-    let netEarnings = 0, seSSTax = 0, seMedTax = 0, deductibleSETax = 0;
-    let w2SSTax = 0, w2MedTax = 0;
-
-    if (w2Wages > 0) {
-      w2SSTax = roundIRS(Math.min(w2Wages, yearConfig.ssCap) * 0.062);
-      w2MedTax = roundIRS(w2Wages * 0.0145);
-    }
-
-    if (selfEmploymentIncome > 0) {
-      netEarnings = roundIRS(selfEmploymentIncome * 0.9235);
-      if (netEarnings >= 400) {
-        const remainingSSCap = Math.max(0, yearConfig.ssCap - w2Wages);
-        const ssTaxable = Math.min(netEarnings, remainingSSCap);
-        seSSTax = roundIRS(ssTaxable * 0.124);
-        seMedTax = roundIRS(netEarnings * 0.029);
-        deductibleSETax = roundIRS((seSSTax + seMedTax) / 2);
-      } else {
-        netEarnings = 0;
+    },
+    2026: {
+      stdDed: { single: 16100, married: 32200, hoh: 24150 },
+      seCap: 184500,
+      qbiRate: 0.20,
+      amtThresh: { single: 200000, married: 250000, hoh: 200000 },
+      brackets: {
+        single:  [[12400,0.10],[50400,0.12],[105700,0.22],[201775,0.24],[256150,0.32],[640550,0.35],[Infinity,0.37]],
+        married: [[24800,0.10],[100800,0.12],[211400,0.22],[403550,0.24],[512300,0.32],[768400,0.35],[Infinity,0.37]],
+        hoh:     [[17600,0.10],[67250,0.12],[105700,0.22],[201775,0.24],[256150,0.32],[640550,0.35],[Infinity,0.37]]
       }
     }
+  };
 
-    // FIX 1: Additional Medicare Tax uses gross SE income (not netEarnings) per IRS Form 8959.
-    // The 0.9% threshold is tested against W-2 wages + gross self-employment income.
-    let additionalMedicare = 0;
-    const combinedIncomeForAddlMed = w2Wages + selfEmploymentIncome;
-    if (combinedIncomeForAddlMed > addlMedThresholds[filingStatus]) {
-      additionalMedicare = roundIRS((combinedIncomeForAddlMed - addlMedThresholds[filingStatus]) * 0.009);
-    }
+  let year = 2026;
 
-    const totalSS = w2SSTax + seSSTax;
-    const totalMed = w2MedTax + seMedTax + additionalMedicare;
-    const totalFicaTax = totalSS + totalMed;
-
-    // Gross income: allow negative SE income to offset W-2 (business loss scenario)
-    const grossIncome = w2Wages + selfEmploymentIncome;
-    const agi = grossIncome - deductibleSETax;
-    const standardDeduction = yearConfig.stdDed[filingStatus];
-
-    // FIX 2: QBI deduction with income phase-out.
-    // QBI reduces only taxable income (not AGI). It phases out above the threshold range.
-    // OBBBA (effective 2026): minimum $400 deduction if QBI >= $1,000; otherwise standard phase-out applies.
-    let qbiDeduction = 0;
-    const qbiBase = selfEmploymentIncome > 0 ? Math.max(0, selfEmploymentIncome - deductibleSETax) : 0;
-    if (qbiBase > 0) {
-      const [phaseStart, phaseEnd] = yearConfig.qbiPhaseOut[filingStatus];
-      let computedQBI = 0;
-      if (agi <= phaseStart) {
-        computedQBI = roundIRS(qbiBase * 0.20);
-      } else if (agi < phaseEnd) {
-        const phaseRatio = 1 - (agi - phaseStart) / (phaseEnd - phaseStart);
-        computedQBI = roundIRS(qbiBase * 0.20 * phaseRatio);
-      }
-      // OBBBA §199A(i): for 2026+, minimum $400 deduction if QBI >= $1,000
-      if (taxYear >= 2026 && qbiBase >= 1000) {
-        qbiDeduction = Math.max(computedQBI, 400);
-      } else {
-        qbiDeduction = computedQBI;
-      }
-    }
-
-    let taxableIncome = Math.max(0, agi - standardDeduction - qbiDeduction);
-    const brackets = taxBrackets[taxYear][filingStatus];
-    let federalIncomeTax = calculateTaxFromBrackets(taxableIncome, brackets);
-
-    // FIX 3: W-2 withholding estimate uses a proportional share of the standard deduction.
-    // The employer withholds based on the W-2 wages only, so we apportion the standard
-    // deduction by the share of income that is W-2, which better approximates actual withholding.
-    let estimatedW2Withholding = 0;
-    let estimatedW2FicaWithholding = 0;
-    if (w2Wages > 0) {
-      const totalGross = Math.max(w2Wages, w2Wages + selfEmploymentIncome); // guard against 0 denominator
-      const w2Share = totalGross > 0 ? w2Wages / totalGross : 1;
-      const w2ApportionedStdDed = standardDeduction * w2Share;
-      const w2Taxable = Math.max(0, w2Wages - w2ApportionedStdDed);
-      const w2FedIncomeWithheld = calculateTaxFromBrackets(w2Taxable, brackets);
-      estimatedW2FicaWithholding = w2SSTax + w2MedTax;
-      estimatedW2Withholding = w2FedIncomeWithheld + estimatedW2FicaWithholding;
-    }
-
-    let totalFederalLiability = totalFicaTax + federalIncomeTax;
-    // Net balance: negative = refund, positive = amount owed
-    let netBalance = totalFederalLiability - estimatedW2Withholding;
-
-    return {
-      netEarnings, w2SSTax, w2MedTax, seSSTax, seMedTax,
-      additionalMedicare, totalFicaTax, deductibleSETax,
-      qbiDeduction, taxableIncome, federalIncomeTax, totalFederalLiability,
-      estimatedW2Withholding, netBalance
-    };
+  function setYear(y, btn) {
+    year = y;
+    document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    calc();
   }
 
-  $(document).ready(function() {
-    $('#calculate-btn').click(function() {
-      const seIncome = parseFloat($('#se-income').val()) || 0;
-      const w2Wages = parseFloat($('#w2-wages').val()) || 0;
-      const filingStatus = $('#filing-status').val();
-      const taxYear = parseInt($('#tax-year').val());
+  function fmt(n) {
+    return '$' + Math.round(Math.abs(n)).toLocaleString();
+  }
+  function pct(n) {
+    return (n * 100).toFixed(1) + '%';
+  }
+  function set(id, val) {
+    document.getElementById(id).textContent = val;
+  }
 
-      const results = calculateTotalFederalTax({
-        selfEmploymentIncome: seIncome,
-        w2Wages: w2Wages,
-        filingStatus: filingStatus,
-        taxYear: taxYear
-      });
+  function calc() {
+    const inc1099  = parseFloat(document.getElementById('inc1099').value)  || 0;
+    const incW2    = parseFloat(document.getElementById('incW2').value)    || 0;
+    const withheld = parseFloat(document.getElementById('withheld').value) || 0;
+    const filing   = document.getElementById('filing').value;
+    const D = TAX_DATA[year];
+    const brk = D.brackets[filing];
 
-      const formatMoney = (amount) => '$' + Math.abs(amount).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+    const totalIncome = inc1099 + incW2;
 
-      if (w2Wages === 0) {
-        $('#w2-ss-row, #w2-med-row').hide();
-      } else {
-        $('#w2-ss-row, #w2-med-row').css('display', 'flex');
+    // SE Tax
+    const netSE     = inc1099 * 0.9235;
+    const ssTax     = Math.min(netSE, D.seCap) * 0.124;
+    const medicareTax = netSE * 0.029;
+    const seTax     = ssTax + medicareTax;
+    const halfSE    = seTax / 2;
+
+    // AGI & deductions
+    const agi              = totalIncome - halfSE;
+    const stdDed           = D.stdDed[filing];
+    const taxableBeforeQBI = Math.max(0, agi - stdDed);
+
+    // QBI (20% both years per OBBBA)
+    const qbiBasis = Math.max(0, inc1099 - halfSE);
+    let qbi = inc1099 > 0 ? qbiBasis * D.qbiRate : 0;
+    qbi = Math.min(qbi, taxableBeforeQBI * D.qbiRate);
+    if (qbiBasis >= 1000 && qbi < 400 && inc1099 > 0) qbi = 400;
+
+    const taxable = Math.max(0, taxableBeforeQBI - qbi);
+
+    // Income tax brackets
+    let fedTax = 0, prev = 0;
+    const bracketDetails = [];
+    for (const [lim, rate] of brk) {
+      if (taxable > prev) {
+        const chunk = Math.min(taxable, lim) - prev;
+        const tax   = chunk * rate;
+        fedTax += tax;
+        bracketDetails.push({ rate, from: prev, to: Math.min(taxable, lim), tax });
+        prev = lim;
+        if (taxable <= lim) break;
       }
+    }
 
-      if (seIncome === 0) {
-        $('#se-net-row, #se-ss-row, #se-med-row, #deduct-row').hide();
-      } else {
-        $('#se-net-row, #se-ss-row, #se-med-row, #deduct-row').css('display', 'flex');
-      }
+    // Additional Medicare Tax (0.9% over threshold on combined wages + net SE)
+    const amtThresh   = D.amtThresh[filing];
+    const addlMedicare = agi > amtThresh ? (agi - amtThresh) * 0.009 : 0;
 
-      $('#res-net').text(formatMoney(results.netEarnings));
-      $('#res-w2-ss').text(formatMoney(results.w2SSTax));
-      $('#res-w2-med').text(formatMoney(results.w2MedTax));
-      $('#res-se-ss').text(formatMoney(results.seSSTax));
-      $('#res-se-med').text(formatMoney(results.seMedTax));
+    // Totals
+    const total    = seTax + fedTax + addlMedicare;
+    const effRate  = totalIncome > 0 ? total / totalIncome : 0;
+    const remaining = Math.max(0, total - withheld);
+    const quarterly = total / 4;
 
-      if (results.additionalMedicare > 0) {
-        $('#res-add-med-tax').text(formatMoney(results.additionalMedicare));
-        $('#add-med-row').css('display', 'flex');
-      } else {
-        $('#add-med-row').hide();
-      }
+    // --- Update UI ---
 
-      $('#res-se-tax').text(formatMoney(results.totalFicaTax));
-      $('#res-deduct').text(formatMoney(results.deductibleSETax));
+    // Top metrics
+    set('m-total', fmt(total));
+    set('m-eff', pct(effRate));
+    set('m-quarterly', fmt(quarterly));
 
-      $('#res-taxable').text(formatMoney(results.taxableIncome));
+    const owedEl = document.getElementById('m-owed');
+    if (withheld > 0) {
+      owedEl.textContent = fmt(remaining);
+      owedEl.className = 'metric-value ' + (remaining > 0 ? 'danger' : 'success');
+    } else {
+      owedEl.textContent = '—';
+      owedEl.className = 'metric-value neutral';
+    }
 
-      if (results.qbiDeduction > 0) {
-        $('#res-qbi').text(formatMoney(results.qbiDeduction));
-        $('#qbi-row').css('display', 'flex');
-      } else {
-        $('#qbi-row').hide();
-      }
+    // Waterfall
+    set('w-gross',   totalIncome > 0 ? fmt(totalIncome) : '—');
+    set('w-sededuct',halfSE > 0 ? '-' + fmt(halfSE) : '—');
+    set('w-agi',     totalIncome > 0 ? fmt(agi) : '—');
+    set('w-stdded',  '-' + fmt(stdDed));
+    set('w-qbi',     qbi > 0 ? '-' + fmt(qbi) : '—');
+    set('w-taxable', totalIncome > 0 ? fmt(taxable) : '—');
 
-      $('#res-fed-tax').text(formatMoney(results.federalIncomeTax));
-      $('#res-total-liability').text(formatMoney(results.totalFederalLiability));
+    // Tiles
+    set('t-se',     fmt(seTax));
+    set('t-fed',    fmt(fedTax));
+    set('t-amt',    addlMedicare > 0 ? fmt(addlMedicare) : '—');
+    set('t-credit', withheld > 0 ? '-' + fmt(withheld) : '—');
 
-      if (results.estimatedW2Withholding > 0) {
-        $('#res-w2-withheld').text('-' + formatMoney(results.estimatedW2Withholding));
-        $('#w2-withholding-row').css('display', 'flex');
-      } else {
-        $('#w2-withholding-row').hide();
-      }
+    // Breakdown rows
+    set('r-se',    fmt(seTax));
+    set('r-fed',   fmt(fedTax));
+    set('r-amt',   addlMedicare > 0 ? fmt(addlMedicare) : '$0');
+    set('r-total', fmt(total));
+    set('r-credit',withheld > 0 ? '-' + fmt(withheld) : '—');
+    set('r-owed',  withheld > 0 ? fmt(remaining) : '—');
 
-      // Show refund or amount due
-      if (results.netBalance < 0) {
-        // Overpaid — show refund
-        $('#remaining-due-row, #quarterly-row').hide();
-        $('#res-refund').text(formatMoney(results.netBalance));
-        $('#refund-row').css('display', 'flex');
-      } else {
-        $('#refund-row').hide();
-        $('#res-remaining-tax').text(formatMoney(results.netBalance));
-        $('#remaining-due-row').css('display', 'flex');
-        const quarterlyPayment = results.netBalance / 4;
-        $('#res-quarterly').text(formatMoney(quarterlyPayment));
-        $('#quarterly-row').css('display', 'flex');
-      }
+    // Bars
+    const maxBar = total > 0 ? total : 1;
+    document.getElementById('bar-se').style.width  = Math.round((seTax / maxBar) * 100) + '%';
+    document.getElementById('bar-fed').style.width = Math.round((fedTax / maxBar) * 100) + '%';
+    document.getElementById('bar-amt').style.width = Math.round((addlMedicare / maxBar) * 100) + '%';
 
-      $('#results-pane').fadeIn(300);
-    });
-  });
+    // Bracket breakdown
+    const bl = document.getElementById('bracket-list');
+    if (bracketDetails.length === 0) {
+      bl.innerHTML = '<div style="font-size:13px;color:var(--text-muted);">Enter income above to see bracket breakdown.</div>';
+    } else {
+      bl.innerHTML = bracketDetails.map((b, i) => {
+        const rangeText = b.to === Infinity
+          ? `Over ${fmt(b.from)}`
+          : `${fmt(b.from)} &ndash; ${fmt(b.to)}`;
+        const isTop = i === bracketDetails.length - 1;
+        return `<div class="b-row">
+          <div class="b-dot" style="background:${COLORS[i % COLORS.length]}"></div>
+          <span class="b-pct">${Math.round(b.rate * 100)}%</span>
+          <span class="b-range">${rangeText}</span>
+          <span class="b-amt" style="${isTop ? 'font-weight:700' : ''}">${fmt(b.tax)}</span>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  calc();
 </script>
 </body>
 </html>
